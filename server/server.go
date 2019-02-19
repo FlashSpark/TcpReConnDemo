@@ -39,18 +39,13 @@ func Start() {
 
 func handleConnection(conn net.Conn) {
 
-	defer conn.Close()
-
-	var buffer []byte = []byte("You are welcome. I'm server.")
+	var buffer = []byte("You are welcome. I'm server.")
 
 	n, err := conn.Write(buffer)
 
 	if err != nil {
-
 		fmt.Println("Write error:", err)
 	}
-	fmt.Println("send:", n)
 
-	fmt.Println("connetion end")
-
+	fmt.Println("send bytes:", n)
 }
