@@ -3,11 +3,10 @@ package client
 import (
 	"TcpReConnDemo/message"
 	server2 "TcpReConnDemo/server"
-	"bufio"
 	"fmt"
 	"net"
 	"os"
-	"strings"
+	"time"
 )
 
 const (
@@ -35,12 +34,6 @@ func (c *Client) conn() {
 		fmt.Println("dial failed:", err)
 		os.Exit(1)
 	}
-	defer func() {
-		err := conn.Close()
-		if err != nil {
-			fmt.Println("close error. ")
-		}
-	}()
 
 	c.rw = message.DataRWIns(conn)
 
@@ -60,7 +53,7 @@ func (c *Client) readLoop(rw *message.DataRW) {
 	for {
 		msg, err := rw.ReadMsg()
 		if err != nil {
-			fmt.Println("client read error. ")
+			fmt.Println("client read error. ", err.Error())
 			rw.Close()
 			return
 		}
@@ -87,18 +80,22 @@ func Start() {
 	c := InsOfClient()
 	c.conn()
 
+	//for {
+	//	inputReader := bufio.NewReader(os.Stdin)
+	//	fmt.Printf("send to server: ")
+	//	input, err := inputReader.ReadString('\n')
+	//	if err == nil {
+	//		fmt.Printf("The input was: %s", input)
+	//	}
+	//
+	//	if strings.Compare(input, "exit") == 0 {
+	//		break
+	//	}
+	//
+	//	c.sendMsg(input)
+	//}
+
 	for {
-		inputReader := bufio.NewReader(os.Stdin)
-		fmt.Printf("send to server: ")
-		input, err := inputReader.ReadString('\n')
-		if err == nil {
-			fmt.Printf("The input was: %s", input)
-		}
-
-		if strings.Compare(input, "exit") == 0 {
-			break
-		}
-
-		c.sendMsg(input)
+		time.Sleep(time.Second)
 	}
 }
