@@ -1,19 +1,32 @@
 package client
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
 )
 
-func Conn() {
+const (
+	server = "192.168.31.20"
+)
 
-	conn, err := net.Dial("tcp", "192.168.5.6:8080")
+type Client struct {
+}
+
+func (c *Client) conn() {
+	addr := server + ":8080"
+	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		fmt.Println("dial failed:", err)
 		os.Exit(1)
 	}
-	defer conn.Close()
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			fmt.Println("close error. ")
+		}
+	}()
 
 	buffer := make([]byte, 512)
 
@@ -24,4 +37,23 @@ func Conn() {
 	}
 
 	fmt.Println("count:", n, "msg:", string(buffer))
+}
+
+// conn to server
+func (c *Client) sendMsg(msg string) {
+
+}
+
+func Start() {
+	c := Client{}
+	c.conn()
+
+	inputReader := bufio.NewReader(os.Stdin)
+	fmt.Printf("send to server: ")
+	input, err := inputReader.ReadString('\n')
+	if err == nil {
+		fmt.Printf("The input was: %s", input)
+	}
+
+	c.sendMsg(input)
 }
