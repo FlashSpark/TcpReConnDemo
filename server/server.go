@@ -123,14 +123,6 @@ loop:
 }
 
 func (s *Server) handleConnection(c net.Conn) {
-
-	defer func() {
-		err := c.Close()
-		if err != nil {
-			fmt.Println("connection close error. ")
-		}
-	}()
-
 	// init read-writer
 	rw := message.DataRWIns(c)
 
