@@ -31,6 +31,8 @@ func Start() {
 			continue
 		}
 
+		fmt.Println("client connect in: ", conn.RemoteAddr())
+
 		go handleConnection(conn)
 
 	}
