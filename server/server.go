@@ -1,6 +1,7 @@
 package server
 
 import (
+	"TcpReConnDemo/message"
 	"fmt"
 	"log"
 	"net"
@@ -9,7 +10,6 @@ import (
 const (
 	addr     = "0.0.0.0"
 	port     = "8080"
-	buffSize = 1024
 )
 
 type Actor struct {
@@ -33,6 +33,7 @@ type Server struct {
 
 	pool  Pool
 	actor Actor
+	rw    *message.DataRW
 }
 
 type Pool struct {
@@ -67,13 +68,13 @@ func (s *Server) Start() {
 		}
 
 		fmt.Println("client connect in: ", conn.RemoteAddr())
+		s.rw = message.DataRWIns(conn)
 
 		go s.handleConnection(conn)
 	}
 }
 
 func (s *Server) handleConnection(c net.Conn) {
-	buff := make([]byte, 0, buffSize)
 
 	defer func() {
 		err := c.Close()
@@ -94,7 +95,7 @@ func (s *Server) handleConnection(c net.Conn) {
 	fmt.Println("send bytes:", n)
 
 	for {
-		n, err := c.Read(buff)
+		m, err := s.rw.ReadMsg()
 		if err != nil {
 			fmt.Println("error:", err.Error())
 			return
@@ -102,11 +103,10 @@ func (s *Server) handleConnection(c net.Conn) {
 
 		fmt.Println(n, " bytes received. ")
 
-		content := string(buff)
-		fmt.Println("msg: ", content)
-		resp := s.actor.resp(content)
+		fmt.Println("message: ", m.Payload)
+		resp := s.actor.resp("this")
 
-		fmt.Println("resp msg :", content)
+		fmt.Println("resp message :", resp)
 
 		n, err = c.Write([]byte(resp))
 		if err != nil {

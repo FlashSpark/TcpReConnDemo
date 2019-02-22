@@ -1,6 +1,7 @@
 package client
 
 import (
+	"TcpReConnDemo/message"
 	"bufio"
 	"fmt"
 	"net"
@@ -14,6 +15,7 @@ const (
 )
 
 type Client struct {
+	rw *message.DataRW
 }
 
 func (c *Client) conn() {
@@ -30,15 +32,15 @@ func (c *Client) conn() {
 		}
 	}()
 
-	buffer := make([]byte, 0, buffSize)
+	c.rw = message.DataRWIns(conn)
 
-	n, err2 := conn.Read(buffer)
+	m, err2 := c.rw.ReadMsg()
 	if err2 != nil {
 		fmt.Println("Read failed:", err2)
 		return
 	}
 
-	fmt.Println("count:", n, "msg:", string(buffer))
+	fmt.Println("count:", m.Size, "message:", m.String())
 }
 
 // conn to server
