@@ -66,6 +66,8 @@ func (s *Server) Start() {
 			continue
 		}
 
+		fmt.Println("client connect in: ", conn.RemoteAddr())
+
 		go s.handleConnection(conn)
 	}
 }
