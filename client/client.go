@@ -84,7 +84,7 @@ func (c *Client) display(msg message.Msg) {
 }
 
 func Start() {
-	c := Client{}
+	c := InsOfClient()
 	c.conn()
 
 	for {
