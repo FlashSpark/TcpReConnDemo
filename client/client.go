@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 const (
-	server = "192.168.31.20"
+	server   = "192.168.31.20"
+	buffSize = 512
 )
 
 type Client struct {
@@ -28,7 +30,7 @@ func (c *Client) conn() {
 		}
 	}()
 
-	buffer := make([]byte, 512)
+	buffer := make([]byte, 0, buffSize)
 
 	n, err2 := conn.Read(buffer)
 	if err2 != nil {
@@ -48,12 +50,18 @@ func Start() {
 	c := Client{}
 	c.conn()
 
-	inputReader := bufio.NewReader(os.Stdin)
-	fmt.Printf("send to server: ")
-	input, err := inputReader.ReadString('\n')
-	if err == nil {
-		fmt.Printf("The input was: %s", input)
-	}
+	for {
+		inputReader := bufio.NewReader(os.Stdin)
+		fmt.Printf("send to server: ")
+		input, err := inputReader.ReadString('\n')
+		if err == nil {
+			fmt.Printf("The input was: %s", input)
+		}
 
-	c.sendMsg(input)
+		if strings.Compare(input, "exit") == 0 {
+			break
+		}
+
+		c.sendMsg(input)
+	}
 }

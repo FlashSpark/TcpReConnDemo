@@ -101,9 +101,10 @@ func (s *Server) handleConnection(c net.Conn) {
 		fmt.Println(n, " bytes received. ")
 
 		content := string(buff)
+		fmt.Println("msg: ", content)
 		resp := s.actor.resp(content)
 
-		fmt.Println("received msg :", content)
+		fmt.Println("resp msg :", content)
 
 		n, err = c.Write([]byte(resp))
 		if err != nil {
