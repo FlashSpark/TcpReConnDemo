@@ -2,6 +2,7 @@ package client
 
 import (
 	"TcpReConnDemo/message"
+	server2 "TcpReConnDemo/server"
 	"bufio"
 	"fmt"
 	"net"
@@ -10,12 +11,21 @@ import (
 )
 
 const (
-	server   = "192.168.31.20"
-	buffSize = 512
+	server  = "192.168.31.20"
+	msgSize = 50
 )
 
 type Client struct {
 	rw *message.DataRW
+
+	in chan message.Msg
+}
+
+func InsOfClient() Client {
+	c := Client{}
+	c.in = make(chan message.Msg, msgSize)
+
+	return c
 }
 
 func (c *Client) conn() {
@@ -34,18 +44,43 @@ func (c *Client) conn() {
 
 	c.rw = message.DataRWIns(conn)
 
-	m, err2 := c.rw.ReadMsg()
-	if err2 != nil {
-		fmt.Println("Read failed:", err2)
-		return
-	}
-
-	fmt.Println("count:", m.Size, "message:", m.String())
+	go c.dataDeal()
+	go c.readLoop(c.rw)
 }
 
 // conn to server
 func (c *Client) sendMsg(msg string) {
+	err := message.Send(c.rw, server2.NormalMsg, msg)
+	if err != nil {
+		fmt.Println("msg send error :", err.Error())
+	}
+}
 
+func (c *Client) readLoop(rw *message.DataRW) {
+	for {
+		msg, err := rw.ReadMsg()
+		if err != nil {
+			fmt.Println("client read error. ")
+			rw.Close()
+			return
+		}
+
+		c.in <- msg
+	}
+}
+
+func (c *Client) dataDeal() {
+	for {
+		select {
+		case msg := <-c.in:
+			c.display(msg)
+		}
+	}
+}
+
+func (c *Client) display(msg message.Msg) {
+	fmt.Println("server resp code :", msg.Code)
+	fmt.Println("info :", msg.Payload)
 }
 
 func Start() {

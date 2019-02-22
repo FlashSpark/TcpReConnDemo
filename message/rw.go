@@ -104,6 +104,10 @@ func (rw *DataRW) WriteMsg(msg Msg) error {
 	return nil
 }
 
+func (rw *DataRW) Close() {
+	rw.Close()
+}
+
 // it will cost more cpu time
 // but can save some memory
 func (rw *DataRW) payload(msg Msg) []byte {

@@ -53,6 +53,6 @@ func Send(w MsgWriter, code uint64, data interface{}) error {
 	if err != nil {
 		return err
 	}
-	// fmt.Println("Msg send code:", msgcode, " size:", size)
+	// fmt.Println("Msg send code:", msg code, " size:", size)
 	return w.WriteMsg(Msg{Code: code, Size: uint32(size), Payload: r})
 }
