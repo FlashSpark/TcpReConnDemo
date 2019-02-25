@@ -29,6 +29,7 @@ func DataRWIns(conn io.ReadWriter) *DataRW {
 // data rw
 type DataRW struct {
 	conn io.ReadWriter
+	io.Closer
 }
 
 // implement of MsgReader

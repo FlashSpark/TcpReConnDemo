@@ -16,7 +16,7 @@ const (
 )
 
 const (
-	NormalMsg  = 0x01
+	NormalMsg = 0x01
 )
 
 var (
@@ -62,6 +62,8 @@ type Server struct {
 
 	// connection go routine
 	in chan net.Conn
+	// stop signal
+	stop chan struct{}
 }
 
 func InsOfServer() Server {
@@ -73,6 +75,7 @@ func InsOfServer() Server {
 	s.actor = Actor{}
 
 	s.in = make(chan net.Conn, inBuffSize)
+	s.stop = make(chan struct{})
 
 	return s
 }
@@ -117,6 +120,7 @@ loop:
 		select {
 		case c := <-s.in:
 			s.handleConnection(c)
+		case <-s.stop:
 			break loop
 		}
 	}
