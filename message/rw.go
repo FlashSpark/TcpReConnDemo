@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 )
 
 const (
@@ -21,17 +22,18 @@ var (
 )
 
 //NOTE: it's without any crypto
-func DataRWIns(conn io.ReadWriter, closer io.Closer) *DataRW {
+func DataRWIns(conn net.Conn) *DataRW {
 	return &DataRW{
-		conn:   conn,
-		closer: closer,
+		rw: conn,
+		fd: conn,
 	}
 }
 
 // data rw
 type DataRW struct {
-	conn   io.ReadWriter
-	closer io.Closer
+	rw io.ReadWriter
+
+	fd net.Conn
 }
 
 // implement of MsgReader
@@ -39,7 +41,7 @@ type DataRW struct {
 func (rw *DataRW) ReadMsg() (msg Msg, err error) {
 	// read the header
 	headBuf := make([]byte, 32)
-	if _, err := io.ReadFull(rw.conn, headBuf); err != nil {
+	if _, err := io.ReadFull(rw.rw, headBuf); err != nil {
 		return msg, err
 	}
 	// NOTE fSize is the sum of len(message.code) and len(message.payload)
@@ -53,7 +55,7 @@ func (rw *DataRW) ReadMsg() (msg Msg, err error) {
 
 	// NOTE: read data from frame
 	frameBuf := make([]byte, rSize)
-	if _, err := io.ReadFull(rw.conn, frameBuf); err != nil {
+	if _, err := io.ReadFull(rw.rw, frameBuf); err != nil {
 		return msg, err
 	}
 
@@ -86,31 +88,32 @@ func (rw *DataRW) WriteMsg(msg Msg) error {
 	copy(headBuf[3:], zeroHeader)
 
 	// write headBuf which contains fSize and a bunch of following zeros
-	if _, err := rw.conn.Write(headBuf); err != nil {
+	if _, err := rw.rw.Write(headBuf); err != nil {
 		return err
 	}
 
 	// write type code
-	if _, err := rw.conn.Write(pType); err != nil {
+	if _, err := rw.rw.Write(pType); err != nil {
 		return err
 	}
 	// write payload
-	if _, err := rw.conn.Write(payload); err != nil {
+	if _, err := rw.rw.Write(payload); err != nil {
 		return err
 	}
 	// fill bytes up
 	if padding := fSize % 16; padding > 0 {
-		if _, err := rw.conn.Write(zero16[:16-padding]); err != nil {
+		if _, err := rw.rw.Write(zero16[:16-padding]); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
+// Close method to notice remote side
 func (rw *DataRW) Close() {
-	err := rw.closer.Close()
-	if err != nil {
-		fmt.Println("data rw close error. ")
+	e := rw.fd.Close()
+	if e != nil {
+		fmt.Println("connection Close error ")
 	}
 }
 

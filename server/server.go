@@ -128,7 +128,7 @@ loop:
 
 func (s *Server) handleConnection(c net.Conn) {
 	// init read-writer
-	rw := message.DataRWIns(c, c)
+	rw := message.DataRWIns(c)
 
 	err := message.Send(rw, NormalMsg, welcome)
 	if err != nil {

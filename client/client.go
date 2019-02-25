@@ -35,7 +35,7 @@ func (c *Client) conn() {
 		os.Exit(1)
 	}
 
-	c.rw = message.DataRWIns(conn, conn)
+	c.rw = message.DataRWIns(conn)
 
 	go c.dataDeal()
 	go c.readLoop(c.rw)
