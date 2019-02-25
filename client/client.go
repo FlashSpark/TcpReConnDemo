@@ -78,7 +78,7 @@ func (c *Client) display(msg message.Msg) {
 	if err != nil {
 		fmt.Println("msg decode error. ", err.Error())
 	}
-	fmt.Println("info :", msg.Payload)
+	fmt.Println("info :", content)
 }
 
 func Start() {
