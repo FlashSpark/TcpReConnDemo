@@ -144,6 +144,11 @@ func (s *Server) readLoop(rw *message.DataRW) {
 		}
 
 		fmt.Println("msg code:", m.Code)
+		var content string
+		err = m.Decode(&content)
+		if err != nil {
+			fmt.Println("msg decode error. ", err.Error())
+		}
 		fmt.Println("info: ", m.Payload)
 
 		resp := s.actor.resp("hello")

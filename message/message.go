@@ -15,6 +15,18 @@ type Msg struct {
 	ReceivedAt time.Time
 }
 
+// Decode parses the RLP content of a message into
+// the given value, which must be a pointer.
+//
+// For the decoding rules, please see package rlp.
+func (msg Msg) Decode(val interface{}) error {
+	s := rlp.NewStream(msg.Payload, uint64(msg.Size))
+	if err := s.Decode(val); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (msg Msg) String() string {
 	return fmt.Sprintf("message #%v (%v bytes)", msg.Code, msg.Size)
 }

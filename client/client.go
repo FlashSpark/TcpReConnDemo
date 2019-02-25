@@ -73,6 +73,11 @@ func (c *Client) dataDeal() {
 
 func (c *Client) display(msg message.Msg) {
 	fmt.Println("server resp code :", msg.Code)
+	var content string
+	err := msg.Decode(&content)
+	if err != nil {
+		fmt.Println("msg decode error. ", err.Error())
+	}
 	fmt.Println("info :", msg.Payload)
 }
 
