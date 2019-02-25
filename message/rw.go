@@ -4,6 +4,7 @@ import (
 	"TcpReConnDemo/rlp"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -20,16 +21,17 @@ var (
 )
 
 //NOTE: it's without any crypto
-func DataRWIns(conn io.ReadWriter) *DataRW {
+func DataRWIns(conn io.ReadWriter, closer io.Closer) *DataRW {
 	return &DataRW{
-		conn: conn,
+		conn:   conn,
+		closer: closer,
 	}
 }
 
 // data rw
 type DataRW struct {
-	conn io.ReadWriter
-	io.Closer
+	conn   io.ReadWriter
+	closer io.Closer
 }
 
 // implement of MsgReader
@@ -106,7 +108,10 @@ func (rw *DataRW) WriteMsg(msg Msg) error {
 }
 
 func (rw *DataRW) Close() {
-	rw.Close()
+	err := rw.closer.Close()
+	if err != nil {
+		fmt.Println("data rw close error. ")
+	}
 }
 
 // it will cost more cpu time
