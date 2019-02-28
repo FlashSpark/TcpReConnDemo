@@ -17,6 +17,7 @@ const (
 
 type Client struct {
 	rw *message.DataRW
+	c  net.Conn
 
 	in chan message.Msg
 
@@ -30,7 +31,7 @@ func InsOfClient() Client {
 	return c
 }
 
-func (c *Client) conn() {
+func (c *Client) connect() {
 	addr := server + ":8080"
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
@@ -38,6 +39,7 @@ func (c *Client) conn() {
 		os.Exit(1)
 	}
 
+	c.c = conn
 	c.rw = message.DataRWIns(conn)
 
 	go c.dataDeal()
@@ -92,30 +94,27 @@ func (c *Client) display(msg message.Msg) {
 	fmt.Println("info :", content)
 }
 
+func (c *Client) disconnect() {
+	fmt.Println("disconnect from ", c.c.RemoteAddr(), " local ", c.c.LocalAddr())
+	err := c.c.Close()
+
+	if err != nil {
+		fmt.Println("disconnect error. ")
+	}
+}
+
+// test client disconnection
+func (c *Client) clientDisconnectTest() {
+	defer c.lock.Unlock()
+	c.lock.Lock()
+
+	c.connect()
+	time.Sleep(time.Second * 3)
+
+	c.disconnect()
+}
+
 func Start() {
-	for i:= 0 ;i < 60000;i ++ {
-		c := InsOfClient()
-		c.conn()
-		time.Sleep(time.Second)
-	}
-
-
-	//for {
-	//	inputReader := bufio.NewReader(os.Stdin)
-	//	fmt.Printf("send to server: ")
-	//	input, err := inputReader.ReadString('\n')
-	//	if err == nil {
-	//		fmt.Printf("The input was: %s", input)
-	//	}
-	//
-	//	if strings.Compare(input, "exit") == 0 {
-	//		break
-	//	}
-	//
-	//	c.sendMsg(input)
-	//}
-
-	for {
-		time.Sleep(time.Second)
-	}
+	ins := InsOfClient()
+	ins.clientDisconnectTest()
 }
