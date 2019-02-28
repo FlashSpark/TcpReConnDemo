@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -18,6 +19,8 @@ type Client struct {
 	rw *message.DataRW
 
 	in chan message.Msg
+
+	lock sync.Mutex
 }
 
 func InsOfClient() Client {
@@ -38,7 +41,14 @@ func (c *Client) conn() {
 	c.rw = message.DataRWIns(conn)
 
 	go c.dataDeal()
-	go c.readLoop(c.rw)
+	go c.readLoop()
+}
+
+func (c *Client) close() {
+	defer c.lock.Unlock()
+	c.lock.Lock()
+
+	c.rw.Close()
 }
 
 // conn to server
@@ -49,17 +59,18 @@ func (c *Client) sendMsg(msg string) {
 	}
 }
 
-func (c *Client) readLoop(rw *message.DataRW) {
+func (c *Client) readLoop() {
 	for {
-		msg, err := rw.ReadMsg()
+		msg, err := c.rw.ReadMsg()
 		if err != nil {
 			fmt.Println("client read error. ", err.Error())
-			rw.Close()
-			return
+			break
 		}
 
 		c.in <- msg
 	}
+
+	c.close()
 }
 
 func (c *Client) dataDeal() {
@@ -82,8 +93,12 @@ func (c *Client) display(msg message.Msg) {
 }
 
 func Start() {
-	c := InsOfClient()
-	c.conn()
+	for i:= 0 ;i < 60000;i ++ {
+		c := InsOfClient()
+		c.conn()
+		time.Sleep(time.Second)
+	}
+
 
 	//for {
 	//	inputReader := bufio.NewReader(os.Stdin)

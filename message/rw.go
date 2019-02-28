@@ -113,7 +113,7 @@ func (rw *DataRW) WriteMsg(msg Msg) error {
 func (rw *DataRW) Close() {
 	e := rw.fd.Close()
 	if e != nil {
-		fmt.Println("connection Close error ")
+		fmt.Println("connection Close error ", e.Error())
 	}
 }
 
