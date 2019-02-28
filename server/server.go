@@ -3,6 +3,7 @@ package server
 import (
 	"TcpReConnDemo/message"
 	"fmt"
+	"io"
 	"log"
 	"net"
 )
@@ -20,7 +21,8 @@ const (
 )
 
 var (
-	welcome = "You are welcome. I'm server."
+	welcome     = "You are welcome. I'm server."
+	beforeClose = "ready to close. "
 )
 
 type Actor struct {
@@ -139,11 +141,27 @@ func (s *Server) handleConnection(c net.Conn) {
 	go s.readLoop(rw)
 }
 
+// read loop
 func (s *Server) readLoop(rw *message.DataRW) {
 	for {
 		m, err := rw.ReadMsg()
 		if err != nil {
-			fmt.Println("error reading msg. ", err.Error())
+			// client sent fin
+			if err == io.EOF {
+				fmt.Println("client has closed. send fin back")
+				// send msg will reach closed port
+				// client will return rst to close connection
+				// set break point here, server is close_wait
+				//e := message.Send(rw, NormalMsg, beforeClose)
+				//if e != nil {
+				//	fmt.Println("error send close info. ")
+				//	return
+				//}
+				rw.Close()
+			} else {
+				fmt.Println("error reading msg. ", err.Error())
+				rw.Close()
+			}
 			return
 		}
 
